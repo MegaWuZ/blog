@@ -1,0 +1,67 @@
+
+
+
+
+server:
+  port: 8080
+
+
+
+
+spring:
+  thymeleaf:
+    mode: HTML
+
+  datasource:
+    name: mybatis_test
+
+    type: com.alibaba.druid.pool.DruidDataSource
+
+    druid:
+
+      filters: stat
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+      url: jdbc:mysql://58.87.80.232:3306/blog?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=UTC
+      username: root
+      password: cnm-12138-mgb
+
+      initial-size: 1
+      min-idle: 1
+      max-active: 20
+
+      max-wait: 60000
+
+      time-between-eviction-runs-millis: 60000
+
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 'x'
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+
+      pool-prepared-statements: false
+      max-pool-prepared-statement-per-connection-size: 20
+
+mybatis:
+
+  mapper-locations: classpath:mappers/*.xml
+
+  type-aliases-package: com.wuzheyi.blog.po
+  configuration:
+    map-underscore-to-camel-case: on
+logging:
+  level:
+    root: info
+    com.wuzheyi: debug
+  file: log/blog.log
+
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+
+
+comment.avatar: /images/1.jpg
+

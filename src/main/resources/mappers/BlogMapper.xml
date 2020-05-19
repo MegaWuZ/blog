@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuzheyi.blog.dao.BlogMapper">
+  <resultMap id="BaseResultMap" type="com.wuzheyi.blog.po.Blog">
+    <constructor>
+      <idArg column="id" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="title" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="content" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="first_picture" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="flag" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="views" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="appreciation" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="share_statement" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="commentabled" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="published" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="recommend" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="create_time" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="update_time" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="type_id" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="user_id" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="description" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="tag_ids" javaType="java.lang.String" jdbcType="VARCHAR" />
+    </constructor>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, title, content, first_picture, flag, views, appreciation, share_statement, commentabled, 
+    published, recommend, create_time, update_time, type_id, user_id, description, tag_ids
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_blog
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <resultMap id="blogQuery" type="com.wuzheyi.blog.vo.BlogQuery">
+    <id property="id" column="id"/>
+    <result property="title" column="title"/>
+    <result property="updateTime" column="update_time"/>
+    <result property="recommend" column="recommend"/>
+    <result property="typeId" column="type_id"/>
+    <association property="type" javaType="com.wuzheyi.blog.po.Type">
+      <id property="id" column="id"/>
+      <result property="name" column="name"/>
+    </association>
+  </resultMap>
+  <select id="getAllBlogs" resultMap="blogQuery">
+     select b.id,b.title,b.update_time,b.recommend,t.id,t.name from t_blog b,t_type t
+     where b.type_id = t.id order by update_time desc
+  </select>
+  <select id="getBlogById" resultType="com.wuzheyi.blog.vo.ShowBlog" >
+        select b.id,b.published,b.flag,b.title,b.content,b.type_id,
+         b.tag_ids,b.first_picture,b.description,b.recommend,b.share_statement,
+         b.appreciation,b.commentabled from t_blog b  where  b.id = #{id};
+   </select>
+  <select id="searchBlogs" resultMap="blogQuery">
+    select b.id,b.title,b.update_time,b.recommend,t.id,t.name from t_blog b,t_type t
+     where b.type_id = t.id and b.title like concat('%',#{title},'%')
+
+    <if test="recommend != null ">
+      and recommend = #{recommend,jdbcType=INTEGER}
+    </if>
+     order by update_time desc
+
+  </select>
+    <select id="searchIndexBlogs" resultType="com.wuzheyi.blog.vo.IndexBlog">
+      select b.id,b.title,b.first_picture,b.views,b.update_time,b.description
+        ,t.name as typeName,u.nickname,u.avatar
+        from t_blog b,t_type t,t_user u
+        where b.type_id = t.id and  b.user_id = u.id and published = 1 and recommend = 1
+        order by update_time desc
+
+    </select>
+  <select id="getRecommendedBlogs" resultType="com.wuzheyi.blog.vo.RecommendedBlog">
+    select id,title from t_blog where recommend = 1 order by update_time desc
+  </select>
+
+  <resultMap id="detailedBlog" type="com.wuzheyi.blog.vo.DetailedBlog">
+    <id property="id" column="bid"/>
+    <result property="firstPicture" column="first_picture"/>
+    <result property="flag" column="flag"/>
+    <result property="title" column="title"/>
+    <result property="content" column="content"/>
+    <result property="views" column="views"/>
+    <result property="updateTime" column="update_time"/>
+    <result property="commentabled" column="commentabled"/>
+    <result property="shareStatement" column="share_statement"/>
+    <result property="appreciation" column="appreciation"/>
+    <result property="nickname" column="nickname"/>
+    <result property="avatar" column="avatar"/>
+    <collection property="tags" ofType="com.wuzheyi.blog.po.Tag">
+      <id property="id" column="tid"/>
+      <result property="name" column="name"/>
+    </collection>
+  </resultMap>
+  <select id="getDetailedBlog" resultMap="detailedBlog">
+    select b.id bid,b.first_picture,b.flag,b.title,b.content,b.views,b.update_time,b.commentabled,b.share_statement,b.appreciation, u.nickname,u.avatar,
+     t.id tid ,t.name
+    from t_blog b,t_user u,t_tag t,t_blog_tags tb
+    where b.user_id = u.id and tb.blog_id = b.id and tb.tag_id = t.id and  b.id = #{id}
+  </select>
+  <select id="getByTypeId" resultType="com.wuzheyi.blog.vo.IndexBlog">
+    select b.id,b.title,b.first_picture,b.views,b.update_time,b.description
+        ,t.name as typeName,u.nickname,u.avatar
+        from t_blog b,t_type t,t_user u
+        where b.type_id = t.id and  b.user_id = u.id and published = 1 and recommend = 1 and t.id = #{typeId}
+        order by update_time desc
+
+  </select>
+  <select id="getByTagId" resultType="com.wuzheyi.blog.vo.IndexBlog">
+     select b.id,b.title,b.first_picture,b.views,b.update_time,b.description
+        ,t.name as typeName,u.nickname,u.avatar
+        from t_blog b,t_type t,t_user u,t_tag t1,t_blog_tags tb
+        where b.type_id = t.id and  b.user_id = u.id
+        and tb.blog_id = b.id and tb.tag_id = t1.id
+        and published = 1 and recommend = 1 and t1.id = #{typeId}
+        order by update_time desc
+
+  </select>
+  <select id="getArchiveBlogs" resultType="com.wuzheyi.blog.vo.ArchiveBlog">
+    select id,title,create_time,flag from t_blog where year(create_time) = #{year} order by create_time desc
+  </select>
+  <select id="count" resultType="java.lang.Integer">
+    select count(1) from t_blog
+
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_blog
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteBlogAndTag">
+    delete from t_blog_tags where blog_id = #{BlogId}
+
+  </delete>
+  <insert id="insert" parameterType="com.wuzheyi.blog.po.Blog">
+    insert into t_blog
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        id,
+        title,
+        content,
+        first_picture,
+        flag,
+        views,
+      <if test="appreciation != null">
+        appreciation,
+      </if>
+      <if test="shareStatement != null">
+        share_statement,
+      </if>
+      <if test="commentabled != null">
+        commentabled,
+      </if>
+      <if test="published != null">
+        published,
+      </if>
+      <if test="recommend != null">
+        recommend,
+      </if>
+        create_time,
+        update_time,
+        type_id,
+        user_id,
+        description,
+        tag_ids,
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+        #{id,jdbcType=BIGINT},
+        #{title,jdbcType=VARCHAR},
+
+        #{content,jdbcType=VARCHAR},
+
+
+        #{firstPicture,jdbcType=VARCHAR},
+
+        #{flag,jdbcType=VARCHAR},
+
+        #{views,jdbcType=INTEGER},
+
+      <if test="appreciation != null">
+        #{appreciation,jdbcType=INTEGER},
+      </if>
+      <if test="shareStatement != null">
+        #{shareStatement,jdbcType=INTEGER},
+      </if>
+      <if test="commentabled != null">
+        #{commentabled,jdbcType=INTEGER},
+      </if>
+      <if test="published != null">
+        #{published,jdbcType=INTEGER},
+      </if>
+      <if test="recommend != null">
+        #{recommend,jdbcType=INTEGER},
+      </if>
+        now(),
+        now(),
+        #{typeId,jdbcType=BIGINT},
+        #{userId,jdbcType=BIGINT},
+        #{description,jdbcType=VARCHAR},
+        #{tagIds,jdbcType=VARCHAR},
+
+    </trim>
+  </insert>
+  <insert id="insertSelective" parameterType="com.wuzheyi.blog.po.Blog">
+    insert into t_blog
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="firstPicture != null">
+        first_picture,
+      </if>
+      <if test="flag != null">
+        flag,
+      </if>
+      <if test="views != null">
+        views,
+      </if>
+      <if test="appreciation != null">
+        appreciation,
+      </if>
+      <if test="shareStatement != null">
+        share_statement,
+      </if>
+      <if test="commentabled != null">
+        commentabled,
+      </if>
+      <if test="published != null">
+        published,
+      </if>
+      <if test="recommend != null">
+        recommend,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="typeId != null">
+        type_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="tagIds != null">
+        tag_ids,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="firstPicture != null">
+        #{firstPicture,jdbcType=VARCHAR},
+      </if>
+      <if test="flag != null">
+        #{flag,jdbcType=VARCHAR},
+      </if>
+      <if test="views != null">
+        #{views,jdbcType=INTEGER},
+      </if>
+      <if test="appreciation != null">
+        #{appreciation,jdbcType=INTEGER},
+      </if>
+      <if test="shareStatement != null">
+        #{shareStatement,jdbcType=INTEGER},
+      </if>
+      <if test="commentabled != null">
+        #{commentabled,jdbcType=INTEGER},
+      </if>
+      <if test="published != null">
+        #{published,jdbcType=INTEGER},
+      </if>
+      <if test="recommend != null">
+        #{recommend,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        now(),
+      </if>
+      <if test="updateTime != null">
+        now(),
+      </if>
+      <if test="typeId != null">
+        #{typeId,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="tagIds != null">
+        #{tagIds,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <insert id="saveBlogAndTag" parameterType="com.wuzheyi.blog.vo.BlogAndTag">
+     insert into t_blog_tags (tag_id, blog_id) values (#{tagId},#{blogId});
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wuzheyi.blog.po.Blog">
+    update t_blog
+    <set>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="firstPicture != null">
+        first_picture = #{firstPicture,jdbcType=VARCHAR},
+      </if>
+      <if test="flag != null">
+        flag = #{flag,jdbcType=VARCHAR},
+      </if>
+      <if test="views != null">
+        views = #{views,jdbcType=INTEGER},
+      </if>
+      <if test="appreciation != null">
+        appreciation = #{appreciation,jdbcType=INTEGER},
+      </if>
+      <if test="shareStatement != null">
+        share_statement = #{shareStatement,jdbcType=INTEGER},
+      </if>
+      <if test="commentabled != null">
+        commentabled = #{commentabled,jdbcType=INTEGER},
+      </if>
+      <if test="published != null">
+        published = #{published,jdbcType=INTEGER},
+      </if>
+      <if test="recommend != null">
+        recommend = #{recommend,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="typeId != null">
+        type_id = #{typeId,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="tagIds != null">
+        tag_ids = #{tagIds,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wuzheyi.blog.po.Blog">
+    update t_blog
+    set title = #{title,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      first_picture = #{firstPicture,jdbcType=VARCHAR},
+      flag = #{flag,jdbcType=VARCHAR},
+      views = #{views,jdbcType=INTEGER},
+      appreciation = #{appreciation,jdbcType=INTEGER},
+      share_statement = #{shareStatement,jdbcType=INTEGER},
+      commentabled = #{commentabled,jdbcType=INTEGER},
+      published = #{published,jdbcType=INTEGER},
+      recommend = #{recommend,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      type_id = #{typeId,jdbcType=BIGINT},
+      user_id = #{userId,jdbcType=BIGINT},
+      description = #{description,jdbcType=VARCHAR},
+      tag_ids = #{tagIds,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateBlog" parameterType="com.wuzheyi.blog.po.Blog">
+        update blog.t_blog set published = #{published},flag = #{flag} ,
+        title = #{title}, content = #{content}, type_id = #{typeId}, tag_ids = #{tagIds},
+        first_picture = #{firstPicture} , description = #{description} , recommend = #{recommend} ,
+        share_statement = #{shareStatement}, appreciation = #{appreciation},
+        commentabled = #{commentabled} ,update_time = #{updateTime} where id = #{id};
+    </update>
+    <update id="updateView" parameterType="long">
+       update t_blog set views = views + 1 where id = #{id}
+
+    </update>
+  <select id="getSearchBlog"  resultType="com.wuzheyi.blog.vo.IndexBlog">
+    <bind name="pattern" value="'%' + query + '%'" />
+    select b.id,b.title,b.first_picture, b.views,b.update_time,b.description,
+    t.name as typeName,u.nickname, u.avatar
+    from blog.t_blog b, blog.t_type t,blog.t_user u
+    where b.type_id = t.id and  u.id = b.user_id and (b.title like #{pattern} or b.content like  #{pattern})
+    order by b.update_time desc
+  </select>
+
+</mapper>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuzheyi.blog.dao.CommentMapper">
+  <resultMap id="BaseResultMap" type="com.wuzheyi.blog.po.Comment">
+    <constructor>
+      <idArg column="id" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="nickname" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="email" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="content" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="avatar" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="create_time" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="blog_id" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="parent_comment_id" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="admin" javaType="java.lang.Long" jdbcType="BIGINT" />
+    </constructor>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, nickname, email, content, avatar, create_time, blog_id, parent_comment_id,admin
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultType="com.wuzheyi.blog.po.Comment">
+    select 
+    *
+    from t_comment
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_comment
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.wuzheyi.blog.po.Comment">
+    insert into t_comment (id, nickname, email, 
+      content, avatar, create_time, 
+      blog_id, parent_comment_id)
+    values (#{id,jdbcType=BIGINT}, #{nickname,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, 
+      #{content,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{blogId,jdbcType=BIGINT}, #{parentCommentId,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wuzheyi.blog.po.Comment">
+    insert into t_comment
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="nickname != null">
+        nickname,
+      </if>
+      <if test="email != null">
+        email,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="avatar != null">
+        avatar,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="blogId != null">
+        blog_id,
+      </if>
+      <if test="parentCommentId != null">
+        parent_comment_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="nickname != null">
+        #{nickname,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="avatar != null">
+        #{avatar,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="blogId != null">
+        #{blogId,jdbcType=BIGINT},
+      </if>
+      <if test="parentCommentId != null">
+        #{parentCommentId,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.wuzheyi.blog.po.Comment">
+    update t_comment
+    <set>
+      <if test="nickname != null">
+        nickname = #{nickname,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        email = #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="avatar != null">
+        avatar = #{avatar,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="blogId != null">
+        blog_id = #{blogId,jdbcType=BIGINT},
+      </if>
+      <if test="parentCommentId != null">
+        parent_comment_id = #{parentCommentId,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wuzheyi.blog.po.Comment">
+    update t_comment
+    set nickname = #{nickname,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      avatar = #{avatar,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      blog_id = #{blogId,jdbcType=BIGINT},
+      parent_comment_id = #{parentCommentId,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <!--添加评论-->
+  <insert id="saveComment" parameterType="com.wuzheyi.blog.po.Comment">
+        insert into t_comment (nickname,email,content,avatar,create_time,blog_id,parent_comment_id,admin)
+        values (#{nickname},#{email},#{content},#{avatar},#{createTime},#{blogId},#{parentCommentId},#{admin});
+    </insert>
+
+  <!--查询父级评论-->
+  <select id="findByParentIdNull" resultType="com.wuzheyi.blog.po.Comment">
+        select *
+        from t_comment c
+        where c.parent_comment_id = #{ParentId} and blog_id = #{BlogId}
+        order by c.create_time desc
+    </select>
+
+
+  <!--查询二级以及所有子集回复-->
+  <select id="findByReplayId" resultType="com.wuzheyi.blog.po.Comment">
+        select *
+        from t_comment c
+        where c.parent_comment_id = #{childId}
+        order by c.create_time desc
+    </select>
+  <select id="findParentIdNotNull" resultType="com.wuzheyi.blog.po.Comment">
+     select *
+        from t_comment c
+        where c.parent_comment_id = #{id}
+        order by c.create_time desc
+
+  </select>
+</mapper>

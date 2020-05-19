@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuzheyi.blog.dao.TypeMapper">
+  <resultMap id="BaseResultMap" type="com.wuzheyi.blog.po.Type">
+    <constructor>
+      <idArg column="id" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="name" javaType="java.lang.String" jdbcType="VARCHAR" />
+    </constructor>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, name
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_type
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="getAdminType" resultMap="BaseResultMap">
+      select * from t_type
+  </select>
+  <select id="getTypeByName" resultType="com.wuzheyi.blog.po.Type">
+     select * from blog.t_type where name = #{name}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_type
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.wuzheyi.blog.po.Type">
+    insert into t_type (id, name)
+    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wuzheyi.blog.po.Type">
+    insert into t_type
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wuzheyi.blog.po.Type">
+    update t_type
+    <set>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wuzheyi.blog.po.Type" >
+    update t_type
+    set name = #{name,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <!--两个id可能会相冲，取别名即可-->
+  <resultMap id="type" type="com.wuzheyi.blog.po.Type">
+    <id property="id" column="tid"/>
+    <result property="name" column="name"/>
+    <collection property="blogs" ofType="com.wuzheyi.blog.po.Blog" javaType="java.util.ArrayList">
+      <id property="id" column="bid"/>
+      <result property="title" column="title"/>
+      <result property="typeId" column="type_id"/>
+    </collection>
+  </resultMap>
+
+  <select id="getAllType" resultMap="type">
+        select t.id tid, t.name, b.id bid, b.title,b.type_id from blog.t_type t,blog.t_blog b where t.id = b.type_id
+    </select>
+</mapper>
